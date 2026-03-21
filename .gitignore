@@ -1,0 +1,47 @@
+# dependencies
+node_modules
+/.pnp
+.pnp.*
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+/dist
+
+# testing
+/coverage
+*.lcov
+
+# env files
+.env
+.env*.local
+
+# misc
+.DS_Store
+*.pem
+*.tgz
+
+# debug
+*.log
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# caches
+.eslintcache
+.cache
+*.tsbuildinfo
+
+# IDEs
+.idea
+.vscode
+
+# typescript
+next-env.d.ts
+
+# supabase
+supabase/.temp/
+
+# vercel
+.vercel
