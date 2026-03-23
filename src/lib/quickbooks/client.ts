@@ -38,14 +38,18 @@ export async function qbRequest<T>(endpoint: string, options: QBRequestOptions):
     body: body ? JSON.stringify(body) : undefined,
   })
 
+  // Capture intuit_tid for every response (required by Intuit for troubleshooting)
+  const intuitTid = res.headers.get('intuit_tid') || res.headers.get('Intuit_tid') || 'unknown'
+
   if (res.status === 429) {
-    // Rate limited — throw specific error for retry logic
-    throw new QBRateLimitError('QuickBooks API rate limit exceeded')
+    console.error(`[QB API] Rate limited | intuit_tid: ${intuitTid} | endpoint: ${endpoint}`)
+    throw new QBRateLimitError(`QuickBooks API rate limit exceeded (intuit_tid: ${intuitTid})`)
   }
 
   if (!res.ok) {
     const error = await res.text()
-    throw new QBAPIError(`QuickBooks API error ${res.status}: ${error}`, res.status)
+    console.error(`[QB API] Error ${res.status} | intuit_tid: ${intuitTid} | endpoint: ${endpoint} | body: ${error}`)
+    throw new QBAPIError(`QuickBooks API error ${res.status}: ${error} (intuit_tid: ${intuitTid})`, res.status, intuitTid)
   }
 
   return res.json()
@@ -56,7 +60,7 @@ export async function qbRequest<T>(endpoint: string, options: QBRequestOptions):
 // ==========================================
 
 export class QBAPIError extends Error {
-  constructor(message: string, public statusCode: number) {
+  constructor(message: string, public statusCode: number, public intuitTid?: string) {
     super(message)
     this.name = 'QBAPIError'
   }
@@ -434,6 +438,31 @@ export function getBalanceSheet(options: Omit<QBRequestOptions, 'method'> & { as
 
 export function getTrialBalance(options: Omit<QBRequestOptions, 'method'>) {
   return qbRequest('/reports/TrialBalance', options)
+}
+
+// ==========================================
+// CDC — Change Data Capture
+// Efficient incremental sync (required by Intuit questionnaire)
+// ==========================================
+
+export function getChangedEntities(
+  entities: string[],
+  changedSince: string,
+  options: Omit<QBRequestOptions, 'method'>
+) {
+  const entityList = entities.join(',')
+  return qbRequest(
+    `/cdc?entities=${encodeURIComponent(entityList)}&changedSince=${encodeURIComponent(changedSince)}`,
+    options
+  )
+}
+
+// ==========================================
+// COMPANY INFO
+// ==========================================
+
+export function getCompanyInfo(options: Omit<QBRequestOptions, 'method'>) {
+  return qbRequest('/companyinfo/' + options.realmId, options)
 }
 
 // ==========================================

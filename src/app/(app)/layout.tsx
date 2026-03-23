@@ -2,6 +2,7 @@ import { SidebarProvider } from '@/components/ui/sidebar'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { AppSidebar } from '@/components/app-sidebar'
 import { AppHeader } from '@/components/app-header'
+import { SupportBanner } from '@/components/support-banner'
 import { I18nProvider } from '@/lib/i18n/context'
 import { getDictionary, defaultLocale } from '@/lib/i18n'
 import { getProfile } from '@/lib/auth'
@@ -26,6 +27,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               <main className="flex-1 p-6">
                 {children}
               </main>
+              <SupportBanner />
             </div>
           </div>
         </SidebarProvider>

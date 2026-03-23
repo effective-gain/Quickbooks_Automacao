@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getProfile } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
+import { revokeToken } from '@/lib/quickbooks/oauth'
 
 // Disconnect from QuickBooks — revoke tokens and deactivate connection
 export async function POST() {
@@ -20,23 +21,10 @@ export async function POST() {
     .single()
 
   if (conn) {
-    // Revoke token at Intuit
     try {
-      const credentials = Buffer.from(
-        `${process.env.QB_CLIENT_ID}:${process.env.QB_CLIENT_SECRET}`
-      ).toString('base64')
-
-      await fetch('https://developer.api.intuit.com/v2/oauth2/tokens/revoke', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Basic ${credentials}`,
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({ token: conn.refresh_token }),
-      })
+      await revokeToken(conn.refresh_token)
     } catch (e) {
-      console.error('Token revocation failed:', e)
+      console.error('[QB Disconnect] Token revocation failed:', e)
     }
   }
 
